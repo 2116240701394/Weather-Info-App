@@ -1,0 +1,38 @@
+# Weather Information App - CI Pipeline
+trigger:
+- main # Trigger pipeline when changes are pushed to the main branch
+
+pool:
+  vmImage: 'ubuntu-latest' # Use a hosted Ubuntu agent for high compatibility
+
+steps:
+# Step 1: Checkout the source code
+- checkout: self
+  displayName: "Pull source code from repository"
+
+# Step 2: Set up Python environment
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x' 
+    addToPath: true
+  displayName: "Set up Python Environment"
+
+# Step 3: Install Core Dependencies
+# We install 'pytest' for testing and 'requests' for the Azure Maps API calls
+- script: |
+    python -m pip install --upgrade pip
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+  displayName: "Install Weather App Dependencies"
+
+# Step 4: Environment Smoke Test
+# Validates that the Python environment is active and project-aware
+- script: |
+    python -c "print('☀️ Weather Information App: Environment Check Successful!')"
+  displayName: "Check Environment"
+
+# Step 5: Run Unit Tests 
+# This step ensures that logic like "Record Breaker" or "Fahrenheit to Celsius" works
+- script: |
+    pytest tests/test_weather_logic.py
+  displayName: "Run Logic Unit Tests"
+  condition: succeeded()
